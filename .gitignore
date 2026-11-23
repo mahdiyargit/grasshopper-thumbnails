@@ -1,0 +1,6 @@
+artifacts/
+.vs/
+*.user
+*.suo
+*.zip
+*.pdb

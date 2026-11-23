@@ -1,0 +1,40 @@
+name: Windows build and tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        shell: powershell
+        run: .\Build.ps1
+      - name: Test
+        shell: powershell
+        run: .\Test.ps1
+      - name: Package
+        shell: powershell
+        run: .\Package.ps1
+      - name: Test installer
+        shell: powershell
+        # Elevated runners cannot activate per-user Shell COM registrations.
+        # Run the full desktop regression locally without -SkipShellIntegration.
+        run: .\tests\Test-Installer.ps1 -RemoveAfter -SkipShellIntegration
+      - name: Test all-users installer
+        shell: powershell
+        # Machine COM registrations are available to the elevated CI account.
+        run: .\tests\Test-Installer.ps1 -AllUsers -RemoveAfter
+      - uses: actions/upload-artifact@v7
+        with:
+          name: GrasshopperThumbnails-windows-x64
+          path: artifacts/packages/*
+          if-no-files-found: error
+          retention-days: 14
